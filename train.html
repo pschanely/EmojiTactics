@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel = "stylesheet" type = "text/css" href = "normalize.css" />
+  <link rel = "stylesheet" type = "text/css" href = "emojitactics.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.0"> </script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+  <script src="base.js"></script>
+  <script src="entities.js"></script>
+  <script src="ai.js"></script>
+  <script src="simulation.js"></script>
+  <script src="ai_trainer.js"></script>
+  <title>EmojiTactics AI Trainer</title>
+</head>
+
+<body style="font-size:x-small; font-family:sans-serif; color:#bbb; background-color:#222">
+
+  <div id="app">
+    
+    <table>
+      <tr><th>unit</th><th>mean advantage</th><th>mean mispredict</th></tr>
+      <tr v-for="rec in typsByAdvantage">
+	<td>{{rec.name}}</td>
+	<td>{{rec.meanAdvantage}}</td>
+	<td>{{rec.meanLoss}}</td>
+      </tr>
+    </table>
+    
+    <table>
+      <tr><th>unit pair</th><th>num examples</th><th>mean advantage</th></tr>
+      <tr v-for="rec in pairsByAdvantage">
+	<td>{{rec.name}}</td>
+	<td>{{rec.count}}</td>
+	<td>{{rec.meanAdvantage}}</td>
+      </tr>
+    </table>
+    
+  </div>
+
+  <script>
+var app = new Vue({
+    el: '#app',
+    data: {
+      evallog: [],
+      unitStats: unitStats,
+      pairStats: pairStats,
+    },
+    computed: {
+      typsByAdvantage: () => {
+        var order = Object.values(unitStats);
+        order.sort((a,b)=> a.meanAdvantage - b.meanAdvantage);
+        return order;
+      },
+      pairsByAdvantage: () => {
+        var order = Object.values(pairStats);
+        order.sort((a,b)=> a.meanAdvantage - b.meanAdvantage);
+        return order;
+      }
+    }
+});
+
+  </script>
+  
+</body>
+
+</html>

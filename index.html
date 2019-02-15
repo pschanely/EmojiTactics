@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"> 
+  <meta name="theme-color" content="#172426">
+  <link rel="manifest" href="manifest.json">
+  <link rel = "stylesheet" type = "text/css" href = "normalize.css" />
+  <link rel = "stylesheet" type = "text/css" href = "emojitactics.css" />
+  <script src="vue.min.js"></script>
+  <script src="audio.js"></script>
+  <script src="base.js"></script>
+  <script src="entities.js"></script>
+  <script src="ai.js"></script>
+  <script src="story.js"></script>
+  <script src="version.js"></script>
+  <title>Emoji Tactics</title>
+</head>
+
+<body style="font-size:4vw; font-family:sans-serif; overscroll-behavior: none; overflow:hidden">
+  <div id="app">
+    <transition name="screen-right">
+
+      <div v-if="mode == 'text'" key="text"
+	   class="fullscreen centered-flex"
+	   v-bind:class="[text.backgroundClass ? text.backgroundClass : '']">
+	<div v-if="text.background"
+	     style="width:100%; text-align: center; font-size:146px">
+	  {{text.background}}
+	</div>
+	<double-emoji v-if="text.backgroundIcon"
+		      v-bind="text.backgroundIcon"
+		      size="50"></double-emoji>
+	<div style="position:absolute; left:0; right:0; top:0; bottom:0; display: flex; flex-direction: column; align-items: center; justify-content: space-around">
+          <div class="story-text" style="font-size:6vh; margin:auto; text-align: center; padding: 5vw">
+	    <p v-for="line in text.content">
+	      {{line}}
+	    </p>
+	  </div>
+	</div>
+	<div class="utility-bar">
+	  <button
+	     v-on:click="mode = 'lobby'"
+	     class="ability-button my-ability left-tray"> &#x2770; </button>
+	  <button
+	     v-on:click="mode = 'roster'"
+	     v-bind:class="[(encounterInfo[0].encounters[encounterInfo[0].encounters.length-1].completed && !hasFlag('seenRoster')) ? 'highlight' : '']"
+	     class="ability-button my-ability center-tray"> &#x1F465; </button>
+	  <button
+	     v-on:click="text.next"
+	     v-if="rosterSpaceLeft >= -0.0"
+	     class="ability-button my-ability right-tray">
+	    &#x2771;
+	  </button>
+	</div>
+      </div>
+      
+      <div v-else-if="mode == 'game'" key="game" class="fullscreen dark centered-flex">
+	<div style="z-index:-1; width:100%; text-align: center; font-size:146px">
+	  {{game.background}}
+	</div>
+	<div class="play-area"
+	     v-bind:class="[game.backgroundClass ? game.backgroundClass : '']">
+	  <transition name="fadeout" mode="out-in">
+	    <div class="centered-flex round-notification"
+		 v-bind:key="game.universe.roundNumber">
+	      &#x21E7; &#x1F45F;
+	    </div>
+	  </transition>
+	  <transition-group name="unit-bar" tag="div" style="left: 0; right: 0; bottom: 0; overflow-y:auto; max-height:100%; position:absolute">
+
+	    <div v-bind:style="{backgroundColor: entity.getBackgroundColor(), marginLeft: (entity.getActionLevel(game.universe)+0.5)+'em', marginTop: (idx == 0 || (entity.getController() != game.uistate.getSortedEntities()[idx-1].getController()) ? '8vw' : '1vw')}"
+		 class="unit-bar-item"
+		 v-for="(entity, idx) in game.uistate.getSortedEntities()"
+		 v-bind:key="entity.id">
+	      <transition name="slide-right">
+		<button class="ability-button my-ability action-select"
+			v-if="game.uistate.targeting && game.uistate.targeting.targets.has(entity.id)"
+			v-on:click="game.uistate.selectTarget(entity)">&#x1F448;</button>
+	      </transition>
+	      <component v-bind:is="entity.getVueComponent(game.universe, game.uistate)"></component>
+	    </div>
+	  </transition-group>
+	</div>
+	<div class="centered-flex game-utility-backdrop" style="flex-direction: column; justify-content: space-around"
+	     v-bind:style="{transform: 'translate(0,'+((game.universe.getDisplayPlayer().isSelf())? 0 : 14)+'vw)'}">
+	  <div style="width:100%; text-align:center; padding:2.5vw; background-color:#510"> &#x2639;&#xFE0F; </div>
+	  <div style="width:100%; text-align:center; padding:2.5vw; background-color:#034"> &#x1F642; </div>
+	</div>
+	<div class="game-utility-bar">
+	  <button
+	     v-on:click="startEncounter(curEncounter[0], curEncounter[1])"
+	     class="ability-button my-ability left-tray"> &#x23CF; </button>
+	  <transition name="slide-right">
+	    <button
+	       v-if="game.universe.getCurPlayer().isSelf() && game.uistate.targeting"
+	       key="cancel"
+	       v-on:click="game.uistate.cancelTargeting()"
+	       class="ability-button my-ability right-tray">&#x293A;</button>
+	    <button
+	       v-else-if="game.universe.getCurPlayer().isSelf()"
+	       key="pass"
+	       v-on:click="pass()"
+	       class="ability-button my-ability right-tray">{{nextIcon()}}&#x2771;</button>
+	  </transition>
+	</div>
+      </div>
+
+      <div v-else-if="mode == 'lobby'" key="lobby" class="fullscreen dark">
+	<div class="centered-flex lobby-area">
+	  <div v-for="chapterInfo in encounterInfo" style="width:100%; margin:1vw; min-height: 15vw; display:flex; flex-direction:row">
+	    <span style="font-size:12vw; margin-left:2vw; margin-right:4vw">{{chapterInfo.name}}</span>
+	    <button class="ability-button tall-and-fat"
+		    v-for="encounter in chapterInfo.encounters"
+		    :disabled="(!encounter.unlocked) && (!encounter.completed)"
+		    v-bind:class="[encounter.unlocked ? 'highlight brighter-ability' : 'my-ability']"
+		    v-on:click="startEncounter(chapterInfo.name, encounter.number)">
+	      {{encounter.icon}}
+	    </button>
+	  </div>
+	</div>
+	<div class="utility-bar">
+	  <button
+	     v-on:click="mode = 'settings'"
+	     class="ability-button my-ability left-tray"> &#x2630; </button>
+	  <button
+	     v-bind:key="money"
+	     v-on:click="mode = 'upgrade'"
+	     class="ability-button my-ability center-tray"> {{money}} &#x1F4B0; </button>
+	</div>
+      </div>
+      
+      <div v-else-if="mode == 'settings'" key="settings" class="fullscreen dark">
+	<div class="centered-flex lobby-area">
+	  <div class="big-button-container">
+	    <a href="https://www.reddit.com/r/EmojiTactics/wiki/index"
+	       class="ability-button my-ability tall-and-fat"
+	       style="display:block; box-sizing: border-box"
+	       target="_blank">&#x2753;</a>
+	  </div>
+	  <div class="big-button-container">
+	    <button
+	       v-on:click="toggleSound()"
+	       class="ability-button my-ability tall-and-fat"> {{ soundIsOn() ? '&#x1F50A;' : '&#x1F507;' }} </button>
+	  </div>
+	  <div class="big-button-container">
+	    <button
+	       v-on:click="resetGame()"
+	       class="ability-button my-ability tall-and-fat"> &#x1F4A5; </button>
+	  </div>
+	</div>
+	<div class="utility-bar">
+	  <button
+	     v-on:click="mode = 'lobby'"
+	     class="ability-button my-ability right-tray">
+            &#x2771;
+	  </button>
+	</div>
+      </div>
+      
+      <div v-else-if="mode == 'roster'" key="roster" class="fullscreen dark">
+	<div class="roster-header-bar">
+	  <transition name="popin" mode="out-in">
+	    <div style="font-size:12vw; text-align: center; padding:5vw"
+		 v-bind:key="rosterSpaceLeft"
+		 v-bind:style="{color: (rosterSpaceLeft >= 0) ? 'white' : 'red'}">
+	      {{rosterSpaceLeft}} &#x1F392;
+	    </div>
+	  </transition>
+	</div>
+	<div class="roster-area">
+	  <div v-for="typ in availableRoster" style="margin:2vw 0vw">
+	    <a class="centered-flex"
+	       v-bind:style="{backgroundColor: rosterContents[typ.name] ? '#034' : '#0000'}"
+	       v-on:click="toggleRosterEntity(typ)">
+	      <div>
+		<span style="font-size:5vw">
+		  {{entityValue(typ)}}
+		</span>
+	      </div>
+	      <component v-bind:is="makeDudEntity(typ).newVueComponent()"></component>
+	    </a>
+	  </div>
+	</div>
+	<div class="utility-bar">
+	  <button
+	     v-on:click="mode = 'lobby'"
+	     class="ability-button my-ability left-tray">&#x2770;</button>
+	  <div class="center-tray">
+	    <div class="roster-index-selector"
+		 v-on:click="switchRosterIndex(0)"
+		 v-bind:style="{borderColor: (curRosterIndex() == 0) ? 'white' : 'transparent'}">1</div>
+	    <div class="roster-index-selector"
+		 v-on:click="switchRosterIndex(1)"
+		 v-bind:style="{borderColor: (curRosterIndex() == 1) ? 'white' : 'transparent'}">2</div>
+	    <div class="roster-index-selector"
+		 v-on:click="switchRosterIndex(2)"
+		 v-bind:style="{borderColor: (curRosterIndex() == 2) ? 'white' : 'transparent'}">3</div>
+	  </div>
+	  <button
+	     v-if="rosterSpaceLeft >= -0.0"
+	     v-on:click="mode = 'text'"
+	     class="ability-button my-ability right-tray">
+	    &#x2771;
+	  </button>
+	</div>
+      </div>
+
+      <div v-else-if="mode == 'upgrade'" key="upgrade" class="fullscreen dark">
+	<div class="roster-header-bar">
+	  <transition name="popin" mode="out-in">
+	    <div v-bind:key="money"
+		 style="font-size:12vw; text-align: center; padding:5vw">
+	      {{money}} &#x1F4B0;
+	    </div>
+	  </transition>
+	</div>
+	<div class="roster-area">
+	  <div v-for="upgrade in availableUpgrades" style="margin:2vw 0vw">
+	    <div class="centered-flex" style="justify-content: space-between; padding:2vw; margin:2vw; font-size:8vw"
+		 v-bind:style="{backgroundColor: hasUpgrade(upgrade) ? '#034' : '#0000'}">
+	      <div>
+		{{upgrade.display}}
+	      </div>
+	      <button class="ability-button my-ability"
+	              v-on:click="purchaseUpgrade(upgrade)"
+		      :disabled="money < upgrade.cost || hasUpgrade(upgrade) || !upgradeUnlocked(upgrade)">
+		{{hasUpgrade(upgrade) ? '&#x2714;&#xFE0F;' :  upgrade.cost + (upgradeUnlocked(upgrade) ? ' &#x1F4B0;' : ' &#x1F512;')}}
+	      </button>
+	    </div>
+	  </div>
+	</div>
+	<div class="utility-bar">
+	  <p style="font-size:3vw">v.{{version()}}</p>
+	  <button
+	     v-on:click="mode = 'lobby'"
+	     class="ability-button my-ability right-tray">
+	    &#x2771;
+	  </button>
+	</div>
+      </div>
+      
+    </transition>
+  </div>
+  
+  <script>
+    var app = new Vue(rootModel());
+  </script>
+  
+</body>
+
+</html>

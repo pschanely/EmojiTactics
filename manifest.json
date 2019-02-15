@@ -1,0 +1,16 @@
+{
+    "short_name": "EmojiTactics",
+    "name": "Emoji Tactics",
+    "icons": [
+	{
+	    "src": "smile.png",
+	    "type": "image/png",
+	    "sizes": "512x512"
+	}
+    ],
+    "start_url": ".",
+    "background_color": "#172426",
+    "display": "standalone",
+    "orientation": "portrait",
+    "theme_color": "#172426"
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel = "stylesheet" type = "text/css" href = "normalize.css" />
+  <link rel = "stylesheet" type = "text/css" href = "emojitactics.css" />
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.0"> </script> -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+  <script src="base.js"></script>
+  <script src="entities.js"></script>
+  <script src="story.js"></script>
+  <script src="ai.js"></script>
+  <script src="simulation.js"></script>
+  <title>EmojiTactics AI Trainer</title>
+</head>
+
+<body style="font-size:x-small; font-family:sans-serif; color:#bbb; background-color:#222">
+
+  <div id="app">
+    <table>
+      <tr>{{storyConfig}}<td></td><td v-for="r2 in roster_labels2">{{r2}}</td></tr>
+      <tr v-for="(r1, i) in roster_labels1">
+	<td>{{r1}}</td><td v-for="j in roster_names2.length">
+	  <a v-if="matrix[i][j-1] != null"
+	     v-bind:style="{color: scoreColor(matrix[i][j-1])}"
+	     :href="'https://millstonecw.com/emoji-tactics/index.html?r1='+roster_names1[i].join(',')+'&r2='+roster_names2[j-1].join(',')+'&up='+upgrade_ids.join(',')">
+	    {{matrix[i][j-1].toFixed(1)}}
+	  </a>
+	</td>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    //var rosters1 = generateRosters([Bug, Ant, Duck, Cat, Dog, Rat, Turtle, Snail, Bird, Bee, Fountain], 10, 13);
+    //var rosters2 = rosters1.slice();
+
+    const storyConfig = new URLSearchParams(document.location.search).get("story");
+    const storyRostersP = eval(storyConfig);
+    
+    var [rosters1, rosters2, upgradeIds] = storyRosters(...storyRostersP); //Hero4, 30, Vilan6, UTENT);//EU_CASTLE);
+    var n = rosters2.length;
+    var matrix = [...Array(rosters1.length)].map((_) => Array(rosters2.length).fill(null));
+    var app = new Vue({
+    el: '#app',
+    methods: { scoreColor: scoreColor },
+    data: {
+    storyConfig: storyConfig,
+    matrix: matrix,
+    testdata: wins_test(),
+    roster_names1: rosters1.map(r => r.map(t => t.name)),
+    roster_labels1: rosters1.map(rosterLabel),
+    roster_names2: rosters2.map((r) => r.map(t => t.name)),
+    roster_labels2: rosters2.map(rosterLabel),
+    upgrade_ids: upgradeIds,
+    }
+    });
+    //advantageMatrix(rosters1, matrix);
+    console.log('u',upgradeIds);
+    storyMatrix(rosters1, rosters2, matrix, upgradeIds);
+  </script>
+  
+</body>
+
+</html>
