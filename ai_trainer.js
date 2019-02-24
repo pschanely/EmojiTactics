@@ -4,6 +4,11 @@ for(let name in BAL) {
     V[name] = tf.variable(tf.scalar(BAL[name]));
 }
 
+
+function displayModel() {
+    console.log('model: ', Object.keys(V).map(k=>k+': '+V[k].dataSync()[0].toFixed(4)))
+}
+
 //const learningRate = 0.5;
 //const optimizer = tf.train.sgd(learningRate);
 const optimizer = tf.train.adam();
@@ -70,7 +75,7 @@ function makeUniverseFeatures(universe) {
 		}
 		let val = entities[eIdx]['get'+propName]() / 1.0;
 		if (isNaN(val) || val == null || val === undefined) {
-		    console.log(propName, entities[eIdx]);
+		    console.log(entities[eIdx]);
 		    throw new Error('invalid property value for '+propName);
 		}
 		vec[vecIdx] = val;
@@ -94,22 +99,23 @@ function playerValue(batch, playerIdx) {
     let armor = entityProp(batch, playerIdx, 'TotalArmor');
     let mov = entityProp(batch, playerIdx, 'MovementValueFactor');
     let abilities = entityProp(batch, playerIdx, 'AbilityValueFactor');
-    let movementAbl = mov.mul(abilities);
+    let defenseAbl = abilities.mul(hp.add(armor).add(mov));
     let defenseDmg = dmg.mul(hp.add(armor)).mul(mov.pow(0.5));
-    let defenseAbl = abilities.mul(hp.add(armor));
     let leaderHp = leaderProp(batch, playerIdx, 'Hp');
     let baseline = V.hp.mul(hp)
+	.add(V.hp2.mul(hp.pow(2)))
 	.add(V.dmg.mul(dmg))
 	.add(V.armor.mul(armor))
 	.add(V.movement.mul(mov))
 	.add(V.abilities.mul(abilities))
 	.add(V.abilities2.mul(abilities.pow(2)))
-        .add(V.movementabl.mul(movementAbl))
+	.add(V.defenseabl.mul(defenseAbl))
+	.add(V.defenseabl2.mul(defenseAbl.pow(2)))
 	.add(V.defensedmg.mul(defenseDmg))
 	.add(V.defensedmg2.mul(defenseDmg.pow(2)))
+	.add(V.abldefensedmg.mul(abilities.mul(defenseDmg)))
 	.sum([1])
-	.add(V.leaderhp.mul(leaderHp))
-	.mul(V.playerScale);
+	.add(V.leaderhp.mul(leaderHp));
     return baseline;
 }
 
@@ -178,7 +184,8 @@ async function train(trainData, evalData, numIterations) {
 	const cost = optimizer.minimize(() => {
 	    return lossfn(predict(xs), ys);
 	}, true);
-	console.log('iter', i, ' cost: ', cost.dataSync()[0]);
+	console.log('iter', i, ' cost: ', cost.dataSync()[0], 'eval: ', eval(evalData));
+	displayModel();
 	await tf.nextFrame();
     }
 }
@@ -191,7 +198,7 @@ BANNED = {
 }
 
 function evalSimulationData(names, featureMaker) {
-    ret = [];
+    var ret = [];
     for(const name of names) {
 	for(const rec of JSON.parse(localStorage.getItem(name))) {
 	    if ([].concat(rec.l_roster).concat(rec.r_roster).filter(n => BANNED[n]).length > 0) continue;
@@ -220,7 +227,6 @@ function summarizeEvalSimulationData(items) {
     for(var typName in all_entities) {
 	unitStats[typName] = {name:typName, totalAdvantage:0, count:0, totalMisprediction:0};
     }
-    console.log(unitStats);
     for(const rec of items) {
 	for(const typ of rec.lr) {
 	    const typName = typ.name;
@@ -257,7 +263,6 @@ function summarizeEvalSimulationData(items) {
 	    rec.meanAdvantage = rec.totalAdvantage / rec.count;
 	    rec.meanLoss = rec.totalMisprediction / rec.count;
 	}
-	console.log(typName, rec.meanAdvantage);
     }
     for(const pair in pairStats) {
 	var rec = pairStats[pair];
@@ -269,7 +274,6 @@ function summarizeEvalSimulationData(items) {
 	if (rec.count < 10 || (-0.25 < rec.meanAdvantage && rec.meanAdvantage < 0.2)) {
 	    delete pairStats[pair];
 	}
-	console.log(pair, rec.meanAdvantage);
     }
     return [unitStats, pairStats];
 }
@@ -301,22 +305,22 @@ function datasetNames(start, end) {
 // Uncomment below for ad-hoc tasks
 
 
-// // Simulate games and store the resulting data in localStorage:
-//
-//for(let i=100; i<200; i++) {
+// Simulate games and store the resulting data in localStorage:
+
+//for(let i=150; i<200; i++) {
 //    createSimulationData('train'+i, 200);
 //}
 
 
-// // Use the currently trained coefficients to generate biases for single units and for pairs of units
-//
-//[unitStats, pairStats] = summarizeEvalSimulationData(evalSimulationData(datasetNames(150, 200)));
+// Use the currently trained coefficients to generate biases for single units and for pairs of units
 
+[unitStats, pairStats] = summarizeEvalSimulationData(evalSimulationData(datasetNames(150, 200)));
 
 // // Learn coefficients based on training data
 //
-//train(readSimulationData(datasetNames(100,140), makeUniverseFeatures),
-//      readSimulationData(datasetNames(140,200), makeUniverseFeatures), 100)
-//    .then(() => {
-//	readSimulationData(datasetNames(120, 122), makeUniverseFeatures);
-//    });
+train(readSimulationData(datasetNames(100,140), makeUniverseFeatures),
+      readSimulationData(datasetNames(140,200), makeUniverseFeatures), 200)
+    .then(() => {
+	readSimulationData(datasetNames(120, 122), makeUniverseFeatures);
+    });
+

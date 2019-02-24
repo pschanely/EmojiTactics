@@ -173,7 +173,7 @@ const UTARGET = '\u{22b9}';
 const UTAKEOUT = '\u{1F961}';
 const UCUP_WITH_STRAW = '\u{1F964}';
 const USMILE = '\u{1F642}';
-const UFROWN = '\u{2639}\u{FE0F}';
+const UFROWN = '\u{1F641}';
 const UDUCK = '\u{1F986}';
 const UCOFFEE = '\u{2615}';
 const UCAT = '\u{1F408}';
@@ -239,40 +239,40 @@ const REFILL_MARKER = new RefillMarker();
 
 const BAL = {
 
-    first: 0.1955,
-    hp: 0.0605,
-    hp2: 0.0000,
-    dmg: 0.0889,
+    // cost:  0.14773723483085632 eval:  0.1484745740890503
+    first: 0.1788,
+    hp: 0.0679,
+    hp2: -0.0074,
+    dmg: 0.0528,
     dmg2: 0.0000,
-    armor: 0.0060,
-    movement: 0.0663,
+    armor: 0.0189,
+    movement: 0.0608,
     movement2: 0.0000,
-    abilities: 0.1336,
-    abilities2: -0.0023,
-    movementabl: 0.0212,
-    defenseabl: -0.0064,
-    defenseabl2: 0.0000,
-    defensedmg: 0.0501,
-    defensedmg2: -0.0008,
-    leaderhp: 0.0041,
-    // train cost:  0.16649197041988373  eval cost:  0.17741233110427856
+    abilities: 0.0486,
+    abilities2: 0.0068,
+    defenseabl: 0.0179,
+    defenseabl2: -0.0004,
+    defensedmg: 0.0456,
+    defensedmg2: -0.0004,
+    leaderhp: 0.0690,
+    abldefensedmg: 0.0011,
 
 
     // variables we do not yet train:
     dfreeze: 1.1,
     dzap: 1.3,
     dother: 1.1,
-    ablocker: 1.0,
+    ablocker: 1.5,
     aengage: 0.25,
     agrantdmg: 1.0,
     agrantarmor: 1.5,
-    agranthp: 1.2,
+    agranthp: 0.9,
     arangeddmg: 2.0,
-    aareadmg: 3.0,
+    aareadmg: 4.0,
     aonetime: 0.55,
     asacrifice: 0.55,
     aspawn: 1.2,
-    acopy: 1.5,
+    acopy: 1.7,
 }
 
 function uniqId() {
@@ -537,26 +537,27 @@ class LivingEntity extends Entity {
     }
     value() {
 	if (this.hp == 0) return 0;
-	const {hp, dmg, armor, movement, abilities, abilities2, movementabl, defenseabl, defensedmg, defensedmg2, ..._} = BAL;
+	const {hp, hp2, dmg, armor, movement, abilities, abilities2, defenseabl, defenseabl2, defensedmg, defensedmg2, abldefensedmg, ..._} = BAL;
 
 	let thp = this.getHp();
 	let tdmg = this.getTotalDamageAmount();
 	let tarmor = this.getTotalArmor();
 	let tmov = this.getMovementValueFactor();
 	let tabilities = this.getAbilityValueFactor();
-	let tmovementAbl = tmov * tabilities;
-	let tdefenseAbl = tabilities * (thp + tarmor);
+	let tdefenseAbl = tabilities * (thp + tarmor + tmov);
 	let tdefenseDmg = tdmg * (thp + tarmor) * (tmov ** 0.5);
 	return Math.round(12.5 * ((hp * thp) +
+				  (hp2 * thp * thp) +
 				  (dmg * tdmg) +
 				  (armor * tarmor) +
 				  (movement * tmov) +
 				  (abilities * tabilities) +
 				  (abilities2 * tabilities * tabilities) +
-				  (movementabl * tmovementAbl) +
 				  (defenseabl * tdefenseAbl) +
+				  (defenseabl2 * tdefenseAbl * tdefenseAbl) +
 				  (defensedmg * tdefenseDmg) +
-				  (defensedmg2 * tdefenseDmg * tdefenseDmg)
+				  (defensedmg2 * tdefenseDmg * tdefenseDmg) +
+				  (abldefensedmg * tabilities * tdefenseDmg)
 				 ));
     }
     getFeatures() {
@@ -594,6 +595,7 @@ class LivingEntity extends Entity {
     </div>
     <div>
       <div stlye="width: 100%" style="text-align: right">
+        <emojis emoji="${USTOP}" :count="c.blocker ? 1 : 0" />
         <emojis emoji="${UUNDER_BRACKET}" :count="c.maxMovement - c.movement" />
         <emojis emoji="${USHOE}" :count="c.movement" />
         <emojis emoji="${UUNDER_BRACKET}" :count="c.maxAirMovement - c.airMovement" />
@@ -601,7 +603,6 @@ class LivingEntity extends Entity {
       </div>
       <div stlye="width: 100%" style="text-align: right">
         <emojis v-for="dmg in c.getMeleInfo().damage" v-bind:key="dmg.getDamageType()" :emoji="dmg.getDamageType()" :count="dmg.getAmount()" />
-        <emojis emoji="${USTOP}" :count="c.blocker ? 1 : 0" />
         <emojis v-for="trigger in c.displayableTriggers()" v-bind:key="trigger.getEmoji()" :emoji="trigger.getEmoji()" :count="1" />
         <emojis emoji="${USHIELD}" :count="c.slashArmor" />
         <emojis emoji="${UHEART}" :count="c.hp" />
@@ -1543,7 +1544,7 @@ class Charm extends OpponentTargetedAbility {
 	this.icon = icon;
     }
     getName() { return this.icon; }
-    valueFactor() { return BAL.acopy * 4.0; }
+    valueFactor() { return BAL.acopy * 4.5; }
     enabled(source, universe, target) {
 	return (super.enabled(source, universe, target) &&
 		(!(target instanceof Leader)));

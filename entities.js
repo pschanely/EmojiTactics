@@ -194,7 +194,7 @@ class Medic extends LivingEntity {
 // Office/Factory
 
 class Angry extends LivingEntity {
-    constructor() { super(3, 2, [new Bite(3)], {}) }
+    constructor() { super(3, 2, [new Slash(3)], {}) }
     getIconProps() { return {front: UANGRY}; }
 }
 
@@ -618,7 +618,7 @@ class Cupid extends LivingEntity {
 	    airMovement: 1,
 	    abilities: [new Engage(), new Charm(UHEART_ARROW)],
 	});
-	this.abilities[0].used = true;
+	this.abilities[1].used = true;
     }
 }
 

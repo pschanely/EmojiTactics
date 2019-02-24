@@ -215,7 +215,7 @@ CHAPTERS[USTORE] = [
 	}),
     encounter(
 	UCUP_WITH_STRAW,
-	[Soda, IceCream, BurritoMan, Angry], {
+	[Soda, KitchenKnife, IceCream, BurritoMan, BurritoMan], {
 	    sky: 'sky-gradient-13',
 	    vilan: Vilan6A,
 	    libraryAward: {typ: Soda},
@@ -305,7 +305,7 @@ CHAPTERS[UFACTORY] = [
 	}),
     encounter(
 	UCONSTRUCTION,
-	[ConstructionBarrier, ConstructionBarrier, FactoryWorker, SpaceInvader, Robot, Spider], {
+	[ConstructionBarrier, FactoryWorker, SpaceInvader, Robot, Spider], {
 	    sky: 'sky-gradient-17',
 	    vilan: Vilan6M,
 	    libraryAward: {typ: ConstructionBarrier},
@@ -556,7 +556,7 @@ CHAPTERS[UJP_CASTLE] = [
 CHAPTERS[UGREEK_TEMPLE] = [
     encounter(
 	UWINE_GLASS,
-	[Archers, Goat, Wine, Wine, Rabbit, Chipmunk], {
+	[Archers, Goat, Wine, Rabbit, Chipmunk], {
 	    sky: 'sky-gradient-10',
 	    vilan: Vilan6MA,
 	    libraryAward: {typ: Wine},
