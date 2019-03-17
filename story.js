@@ -64,28 +64,28 @@ CHAPTERS[UHOUSE] = [
 	UBED,
 	[Bug], {
 	    sky: 'sky-gradient-04',
-	    vilan: Vilan4,
+	    vilan: Vilan2,
 	    libraryAward: {typ: Bug},
 	}),
     encounter(
 	UCLOCK,
 	[Ant, Ant], {
 	    sky: 'sky-gradient-05',
-	    vilan: Vilan4,
+	    vilan: Vilan2,
 	    libraryAward: {typ: Ant},
 	}),
     encounter(
 	UBATHTUB,
 	[Duck, Duck], {
 	    sky: 'sky-gradient-06',
-	    vilan: Vilan4,
+	    vilan: Vilan3,
 	    libraryAward: {typ: Duck},
 	}),
     encounter(
 	UCOFFEE,
 	[Duck, Rat], {
 	    sky: 'sky-gradient-07',
-	    vilan: Vilan4,
+	    vilan: Vilan3,
 	    libraryAward: {typ: Rat},
 	}),
     encounter(
@@ -109,13 +109,13 @@ CHAPTERS[UHOUSE] = [
 CHAPTERS[UHOUSE_AND_YARD] = [
     encounter(
 	UBEE,
-	[Bird, Bee], {
+	[Duck, Bee], {
 	    sky: 'sky-gradient-07',
 	    libraryAward: {typ: Bee},
 	}),
     encounter(
 	USNAIL,
-	[Bee, Bird, Snail], {
+	[Bee, Duck, Snail], {
 	    sky: 'sky-gradient-07',
 	    libraryAward: {typ: Snail},
 	}),

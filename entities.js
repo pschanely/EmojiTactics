@@ -45,6 +45,16 @@ class Hero6A extends Leader {
     getIconProps() {return {front: USMILE, back: USTAR};}
 }
 
+class Vilan2 extends Leader {
+    constructor() { super(2, 1, []); }
+    getIconProps() {return {front: UFROWN, back: USTAR};}
+}
+
+class Vilan3 extends Leader {
+    constructor() { super(3, 1, []); }
+    getIconProps() {return {front: UFROWN, back: USTAR};}
+}
+
 class Vilan4 extends Leader {
     constructor() { super(4, 1, []); }
     getIconProps() {return {front: UFROWN, back: USTAR};}
@@ -933,6 +943,8 @@ all_entities = {
     Hero6,
     Hero6A,
     Hero6M,
+    Vilan2,
+    Vilan3,
     Vilan4,
     Vilan5,
     Vilan6,
