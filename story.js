@@ -312,7 +312,7 @@ CHAPTERS[UFACTORY] = [
 	}),
     encounter(
 	UBOMB,
-	[Angry, Fountain, ConstructionBarrier, Rat, Bomb], {
+	[Dog, Fountain, ConstructionBarrier, Rat, Bomb], {
 	    sky: 'sky-gradient-18',
 	    vilan: Vilan6M,
 	    libraryAward: {typ: Bomb},
@@ -837,6 +837,7 @@ class AppModel {
     resetGame() {
 	if (confirm('Reset game? You will lose all progress.')) {
 	    localStorage.removeItem('state');
+	    localStorage.removeItem('selfid');
 	    window.location.reload();
 	}
     }
