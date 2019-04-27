@@ -247,7 +247,7 @@ class FloatingMan extends LivingEntity {
     constructor() {
 	super(3, 0, [new Punch(1)], {
 	    airMovement: 1,
-	    abilities: [new RefillTarget(), new RefillTarget()],
+	    abilities: [new RefillTarget()],
 	});
     }
     getIconProps() { return {back: UFLOATING_MAN}; }

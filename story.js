@@ -2,10 +2,10 @@
 if('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/emoji-tactics/service-worker.js', { scope: '/emoji-tactics/' })
         .then(function(registration) {
-            console.log('Service Worker Registered');
+            //console.log('Service Worker Registered');
         });
     navigator.serviceWorker.ready.then(function(registration) {
-        console.log('Service Worker Ready');
+        //console.log('Service Worker Ready');
     });
 }
 
@@ -274,7 +274,7 @@ CHAPTERS[UWORN_HOUSE] = [
 	}),
     encounter(
 	UFIRE,
-	[FireSkeleton, FireSkeleton, Skeleton, SkeletonArcher, Necromancer], {
+	[FireSkeleton, FireSkeleton, Ant, SkeletonArcher, Necromancer], {
 	    sky: 'sky-gradient-23',
 	    vilan: Vilan7A,
 	    libraryAward: {typ: FireSkeleton},
@@ -442,7 +442,7 @@ CHAPTERS[UMOUNTAIN] = [
 	}),
     encounter(
 	UEAGLE,
-	[EagleRider, EagleRider, WindElemental, Ram, Ram, Rabbit], {
+	[EagleRider, EagleRider, WindElemental, Ram, Bird, Rabbit], {
 	    sky: 'sky-gradient-09',
 	    vilan: Vilan8MA,
 	    libraryAward: {typ: EagleRider},
@@ -546,7 +546,7 @@ CHAPTERS[UJP_CASTLE] = [
 	}),
     encounter(
 	UCROSSED_SWORDS,
-	[BentoBox, GiantNinja, Ninja], {
+	[BentoBox, GiantNinja, Ninja, Squid], {
 	    sky: 'sky-gradient-13',
 	    vilan: Vilan6MA,
 	    libraryAward: {typ: GiantNinja},
@@ -966,7 +966,6 @@ class AppModel {
     }
 
     switchRosterIndex(index) {
-	console.log(index);
 	this.saveSelectedRoster();
 	this.rosterIndex = index;
 	this.loadSelectedRoster();
@@ -983,7 +982,6 @@ class AppModel {
     
     purchaseUpgrade(upgrade) {
 	if (this.money >= upgrade.cost) {
-	    console.log('purchased', upgrade.id);
 	    Vue.set(this.upgrades, upgrade.id, true);
 	    this.money -= upgrade.cost;
 	}

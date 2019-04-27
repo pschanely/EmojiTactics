@@ -1627,6 +1627,7 @@ class Tornado extends RangedDamageAbility {
 	if (target.getMaxAirMovement() > 0) {
 	    super.execute(universe, source, target);
 	}
+	this.setUsed(true);
     }
 }
 
